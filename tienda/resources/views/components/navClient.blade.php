@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Http;
 
-$apiToken = 'LQniaa0LzQVbVdukKsPIRqnuV7Afa3Y03X1fovRv3Z4znoyTWHB0VfJMHr4O';
+$apiToken = 'VlcDnbkVX7GvaEXLpXDfxSsQZ0MmkASz2MaWiyd9XmniRFxexRiL95kbvqo4';
 
         $id_user = auth()->user()->id;
 

@@ -13,7 +13,7 @@ use App\Models\LineaPedido;
 
 class CarritoController extends Controller
 {
-    const API_TOKEN = 'LQniaa0LzQVbVdukKsPIRqnuV7Afa3Y03X1fovRv3Z4znoyTWHB0VfJMHr4O';
+    const API_TOKEN = 'VlcDnbkVX7GvaEXLpXDfxSsQZ0MmkASz2MaWiyd9XmniRFxexRiL95kbvqo4';
 
 
     public function index(Request $request)
