@@ -3,85 +3,53 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
-
 use App\Models\Carrito;
-use Illuminate\Support\Facades\Log;
+
 
 class ApiCarritoController extends Controller
 {
 
-    public function index(Request $request)
+    public function __construct()
     {
-        $apiToken = $request->bearerToken();
-        $user = User::where('api_token', $apiToken)->first();
-
-        $carrito = Carrito::where('id_user', $user->id)->get();
-        return response()->json($carrito);
+        $this->middleware('auth:api');
     }
 
+    public function index(Request $request)
+    {
+        $id_user = $request->id_user;
+        $carrito = Carrito::where('id_user', $id_user)->get();
+        return response()->json($carrito);
+    
+    }
 
     public function store(Request $request)
     {
-        $apiToken = $request->bearerToken();
-        $user = User::where('api_token', $apiToken)->first();
+        
+        $carrito = new Carrito();
+        $carrito->id_user = $request->idUsuario;
+        $carrito->id_product = $request->idProducto;
+        $carrito->nombre = $request->nombre;
+        $carrito->precio = $request->precio;
+        $carrito->cantidad = $request->cantidad;
 
-        $product = Producto::find($request->input('product_id'));
-
-        $existingItem = Carrito::where('id_user', $user->id)
-                               ->where('id_product', $request->input('product_id'))
-                               ->first();
-
-        if ($existingItem) {
-            $existingItem->cantidad += $request->input('quantity');
-            $existingItem->save();
-
-        } else {
-
-            Carrito::create([
-                'id_user' => $user->id,
-                'id_product' => $request->input('product_id'),
-                'nombre' => $product->name,
-                'precio' => $product->price,
-                'cantidad' => $request->input('quantity'),
-            ]);
-        }
-
-        return response()->json(['success' => 'Producto agregado al carrito']);
+        $carrito->save();
+        return response()->json($carrito);    
     }
 
-
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $apiToken = request()->bearerToken();
-        $user = User::where('api_token', $apiToken)->first();
-
-        $item = Carrito::where('id_user', $user->id)
-                    ->where('id_product', $id)
-                    ->first();
-
-        $item->delete();
+        $carrito = Carrito::where('id_user', $request->idUsuario)->where('id_product', $request->idProducto)->first();
+        $carrito->delete(); 
         return response()->json(['success' => 'Producto eliminado del carrito'], 200);
     }
 
-
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $request->validate([
-            'cantidad' => 'required|integer|min:1'
-        ]);
+        $carrito = Carrito::where('id_user', $request->idUsuario)->where('id_product', $request->idProducto)->first();
+        $carrito->cantidad = $request->cantidad;
+        $carrito->save();
 
-        $item = Carrito::where('id', $id)
-                       ->where('id_user', auth()->id()) 
-                       ->first();
-
-        $item->cantidad = $request->input('cantidad');
-        $item->save(); 
-
-        return response()->json([
-            'message' => 'Producto actualizado correctamente',
-            'item' => $item
-        ], 200);
+        return response()->json($carrito);
     }
 
 

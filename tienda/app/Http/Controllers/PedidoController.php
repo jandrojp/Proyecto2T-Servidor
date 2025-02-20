@@ -11,6 +11,8 @@ use Carbon\Carbon;
 
 class PedidoController extends Controller
 {
+
+    const API_TOKEN = 'LQniaa0LzQVbVdukKsPIRqnuV7Afa3Y03X1fovRv3Z4znoyTWHB0VfJMHr4O';
     
     public function show($id)
     {
@@ -21,9 +23,14 @@ class PedidoController extends Controller
 
     public function confirmarPedido(Request $request)
     {
-        
-        $apiToken = auth()->user()->api_token;
-        $carritoResponse = Http::withToken($apiToken)->get('http://carrito/api/carrito');
+
+        $apiToken = self::API_TOKEN;
+        $id_user = auth()->user()->id;
+    
+        $carritoResponse = Http::withToken($apiToken)->get('http://carrito/api/carrito', [
+            'id_user' => $id_user,
+        ]);
+
         $carrito = $carritoResponse->json();
 
         $usuario = Auth::user();
@@ -54,8 +61,11 @@ class PedidoController extends Controller
 
   
         foreach ($carrito as $producto) {
-            $productoId = $producto['id_product']; 
-            Http::withToken($apiToken)->delete("http://carrito/api/carrito/{$productoId}");
+
+            Http::withToken($apiToken)->delete('http://carrito/api/carrito', [
+                'idUsuario' => $id_user,  
+                'idProducto' => $producto['id_product'], 
+            ]);
         }
 
         return redirect()->route('client.pedido', ['id' => $pedido->id])->with('success', 'Pedido confirmado con éxito.');

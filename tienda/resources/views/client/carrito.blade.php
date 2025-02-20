@@ -28,7 +28,7 @@
                         <td class="align-middle mt-4">{{ $item['nombre'] }}</td>
                         <td class="align-middle mt-4">{{ number_format($item['precio'], 2) }} €</td>
                         <td class="align-middle mt-4">
-                            <form action="{{ route('carrito.update', ['id' => $item['id']]) }}" method="POST" class="d-flex align-items-center justify-content-center">
+                            <form action="{{ route('carrito.update', ['id' => $item['id_product']]) }}" method="POST" class="d-flex align-items-center justify-content-center">
                                 @csrf
                                 @method('PUT')
                                 <input type="number" name="cantidad" value="{{ $item['cantidad'] }}" min="1" class="form-control cantidad-input" style="width: 70px;">

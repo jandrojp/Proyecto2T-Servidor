@@ -13,73 +13,67 @@ use App\Models\LineaPedido;
 
 class CarritoController extends Controller
 {
-    public function index()
+    const API_TOKEN = 'LQniaa0LzQVbVdukKsPIRqnuV7Afa3Y03X1fovRv3Z4znoyTWHB0VfJMHr4O';
+
+
+    public function index(Request $request)
     {
-        $apiToken = auth()->user()->api_token;
-        $response = Http::withToken($apiToken)->get('http://carrito/api/carrito');
+        $apiToken = self::API_TOKEN;
+
+        $id_user = auth()->user()->id;
+
+        $response = Http::withToken($apiToken)->get('http://carrito/api/carrito', [
+            'id_user' => $id_user,
+        ]);
 
         if ($response->successful()) {
-            $carrito = $response->json(); 
+            $carrito = $response->json();
 
             foreach ($carrito as &$item) {
                 $producto = Product::find($item['id_product']);
-                $item['image'] = $producto->image; 
+                $item['image'] = $producto ? $producto->image : null; 
             }
 
             return view('client.carrito', compact('carrito'));
         }
 
-        return back()->withErrors('No se pudo cargar el carrito');
+        return response()->json(['error' => 'No se pudo cargar el carrito'], 400);
     }
 
-    
+
     public function store(Request $request)
     {
-        $apiToken = auth()->user()->api_token;
-        $user = User::where('api_token', $apiToken)->first();
+        $apiToken = self::API_TOKEN;
 
-        if (!$user) {
-            return response()->json(['error' => 'No autenticado'], 401);
-        }
-
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-        ], [
-            'quantity.required' => 'La cantidad es obligatoria.',
-            'quantity.integer' => 'La cantidad debe ser un número.',
-            'quantity.min' => 'La cantidad debe ser al menos 1.',
-        ]);
-
+        $id_user = auth()->user()->id;
         $product = Product::find($request->input('product_id'));
 
-        $existingItem = Carrito::where('id_user', $user->id)
-                            ->where('id_product', $request->input('product_id'))
-                            ->first();
+        $response = Http::withToken($apiToken)->post('http://carrito/api/carrito', [
+            'idUsuario' => $id_user, 
+            'idProducto' => $request->input('product_id'), 
+            'nombre' => $product->name,
+            'precio'=> $product->price,
+            'cantidad' => $request->input('quantity'), 
+        ]);
 
-        if ($existingItem) {
-            $existingItem->cantidad += $request->input('quantity');
-            $existingItem->save();
-
-        } else {
-
-            Carrito::create([
-                'id_user' => $user->id,
-                'id_product' => $request->input('product_id'),
-                'nombre' => $product->name,
-                'precio' => $product->price,
-                'cantidad' => $request->input('quantity'), 
-            ]);
+        if ($response->successful()) {
+            return redirect()->route('client.carrito')->with('success', 'Producto añadido al carrito');
         }
 
-        return redirect()->route('client.carrito')->with('success', 'Producto añadido al carrito');
+        return back()->withErrors(['error' => 'No se pudo agregar el producto al carrito']);
     }
 
 
-    public function destroy(Request $request, $id)
+
+    public function destroy(Request $request, $productId)
     {
-        $apiToken = auth()->user()->api_token;
-        $response = Http::withToken($apiToken)->delete("http://carrito/api/carrito/{$id}");
+        $apiToken = self::API_TOKEN; 
+        $id_user = auth()->user()->id;
+
+        $response = Http::withToken($apiToken)->delete('http://carrito/api/carrito', [
+            'idUsuario' => $id_user,  
+            'idProducto' => $productId, 
+        ]);
 
         if ($response->successful()) {
             return redirect()->back()->with('success', 'Producto eliminado del carrito');
@@ -89,16 +83,19 @@ class CarritoController extends Controller
     }
 
 
+
+
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'cantidad' => 'required|integer|min:1'
-        ]);
+        $apiToken = self::API_TOKEN; 
+        $id_user = auth()->user()->id;
 
-        $apiToken = auth()->user()->api_token;
-        $response = Http::withToken($apiToken)->put("http://carrito/api/carrito/{$id}", [
+        $response = Http::withToken($apiToken)->put("http://carrito/api/carrito", [
+            'idUsuario' => $id_user,  
+            'idProducto' => $id,
             'cantidad' => $request->input('cantidad')
         ]);
+
 
         if ($response->successful()) {
             return redirect()->route('client.carrito')->with('success', 'Producto actualizado en el carrito');

@@ -42,7 +42,7 @@ return [
         ],
 
         'api' => [
-            'driver' => 'token',  // Esto debe estar configurado para usar el guard de API
+            'driver' => 'token',  
             'provider' => 'users',
         ],
     ],
@@ -67,7 +67,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\Usuario::class,
         ],
 
     ],
