@@ -31,10 +31,6 @@ class AuthController extends Controller
 
             Auth::login($user);
 
-            $token = Str::random(60);
-            $user->api_token = hash('sha256', $token);
-            $user->save();
-
             if ($user->role === 'admin') {
                 return redirect()->route('admin.dashboard'); 
             }
